@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import './App.css';
 import Navbar from './components/Navbar';
-import Model from './components/Model';
 import Stories from './components/Stories';
 import Create from './components/Create';
 import Posts from './components/Posts';

@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { ContextProvider } from '../Global/Context';
 
 const LoginForm = () => {
-    const { register, login, error, timer, setTimer, visible, setVisible, isRegistered } = React.useContext(ContextProvider);
+    const { register, login, error, timer, setTimer, visible, setVisible, isRegistered,initialized,loader } = React.useContext(ContextProvider);
     const navigate = useNavigate(); // Hook for navigation
     const [state, setState] = React.useState({
         register : true,
@@ -19,6 +19,8 @@ const LoginForm = () => {
         email: '',
         password: ''
     })
+
+    
 
     const handleInputs = e =>{
         setInputs({ ...inputs, [e.target.name] : e.target.value });
@@ -48,8 +50,6 @@ const LoginForm = () => {
         navigate("/login"); // Redirect to the login page on authentication error
     }
 
-    
-
     React.useEffect(() => {    
         if (error) {
             setVisible(true);
@@ -63,6 +63,11 @@ const LoginForm = () => {
             clearTimeout(timer);
         };
     }, [error]);
+
+    if (!initialized || loader) {
+        // Show a loading indicator or return null while the initialization or data loading is in progress
+        return <div></div>;
+    }
 
     return(
 

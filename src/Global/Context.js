@@ -1,10 +1,8 @@
 import React,{createContext} from 'react';
-import { createUserWithEmailAndPassword,signInWithEmailAndPassword,updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword,signInWithEmailAndPassword,updateProfile,setPersistence, browserSessionPersistence } from 'firebase/auth';
 import { db,auth,storage } from '../config';
 import {ref,uploadBytes,getDownloadURL  } from 'firebase/storage';
 import { ref as rtdbRef,set,push,serverTimestamp,onValue } from "firebase/database";
-import { useNavigate } from 'react-router-dom';
-
 
 export const ContextProvider = createContext();
 
@@ -12,16 +10,45 @@ const Context = (props) => {
     const [user, setUser] = React.useState(null); 
     const [loader,setLoader] = React.useState(true);
     const [posts,setPosts] = React.useState([]);
+    const [followedUsersPosts, setFollowedUsersPosts] = React.useState([]);
+    const [followedUsers, setFollowedUsers] = React.useState([]);
+
 
     const [error,setError] = React.useState('');
     const [timer,setTimer] = React.useState(null);
     const [visible, setVisible] = React.useState(true);
-    const navigate = useNavigate(); // Hook for navigation
+    const [loggedInUserId, setLoggedInUserId] = React.useState(null);
 
     const [isRegistered,setIsRegistered] = React.useState(null);
     // const [registrationStatus, setRegistrationStatus] = React.useState(null);
 
     const { onLoginFailure,onLoginSuccess, onLogout } = props;
+
+    const [initialized, setInitialized] = React.useState(false);
+
+    React.useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((authUser) => {
+        if (authUser) {
+            // User is logged in
+            setUser(authUser);
+            setFollowedUsers([]);
+
+            // Set initialized to true once user authentication is complete
+            setInitialized(true);
+        } else {
+            // User is logged out
+            setUser(null);
+            setFollowedUsers([]);
+
+            // Set initialized to true once user authentication is complete
+            setInitialized(true);
+        }
+        });
+
+        // Clean up the listener
+        return () => unsubscribe();
+    }, []);
+
 
     const register = async (user) =>{
         const {username, email, password} = user;
@@ -32,9 +59,22 @@ const Context = (props) => {
                     setIsRegistered(true);
                     user = auth.currentUser;
                     await updateProfile(user,{displayName:username});
+                    
+                    const profileRef = rtdbRef(db,`users/${user.uid}/profile`);
 
+                    const profileData = {
+                        username,
+                    }
 
-
+                    set(profileRef,profileData)
+                        .then(() => {
+                            console.log("profile updated successfully");
+                        })
+                        .catch((error) => {
+                            console.log("profile updating error : ", error);
+                        });
+                    
+                    
                     console.log("successfully registerd = ", isRegistered)
                 })
                 .catch((error) => {
@@ -54,17 +94,6 @@ const Context = (props) => {
                     );
                 });
 
-                const userRef = rtdbRef(db,`users`);
-                const newUserRef = push(userRef);
-                set(newUserRef,{username});
-
-
-
-            // Create a user-specific node in the database
-            // const userRef = rtdbRef(db, `users/${user.uid}`);
-            // set(userRef, { username });
-            
-            // navigate('/login');
             
         } catch(err){
             console.log("2nd catch err");
@@ -74,9 +103,11 @@ const Context = (props) => {
     const login = async (user) => {
         const { email, password } = user;
         try {
+            await setPersistence(auth, browserSessionPersistence);
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = auth.currentUser;
-            console.log(userCredential);
+
+            setLoggedInUserId(user.uid);
             onLoginSuccess();
         } catch (error) {
             onLoginFailure();
@@ -129,12 +160,12 @@ const Context = (props) => {
                 };
         
                 set(newImageRef, newImageData)
-                .then(() => {
-                    console.log("Image uploaded successfully");
-                })
-                .catch((error) => {
-                    console.log("Error uploading image:", error);
-                });
+                    .then(() => {
+                        console.log("Image uploaded successfully");
+                    })
+                    .catch((error) => {
+                        console.log("Error uploading image:", error);
+                    });
             });
         });
     };
@@ -210,13 +241,135 @@ const Context = (props) => {
         
     }, [user, loader, isRegistered]);
 
+
+
+    React.useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            setUser(user);
+            setLoader(false);
+        });
+    
+        return () => {
+            unsubscribe();
+        };
+    }, []);
+    
+    React.useEffect(() => {
+        const fetchPosts = () => {
+            if (user) {
+                const postsRef = rtdbRef(db, `users/${user.uid}/posts`);
+        
+                onValue(postsRef, (snapshot) => {
+                    const data = snapshot.val();
+        
+                    if (data) {
+                        const posts = Object.keys(data).map((key) => ({
+                            id: key,
+                            title: data[key].title,
+                            image: data[key].image,
+                            username: data[key].username,
+                        }));
+            
+                        const reversePosts = posts.reverse();
+                        setPosts(reversePosts);
+                    } else {
+                        setPosts([]);
+                    }
+                }, (err) => {
+                    console.log("Error fetching posts:", err);
+                });
+            }
+        };
+    
+        fetchPosts();
+    }, [user]);
+    
+    const followUser = (userId) => {
+        const followedUsersRef = rtdbRef(db, `users/${user.uid}/following/${userId}`);
+    
+        set(followedUsersRef, true)
+            .then(() => {
+                console.log("User followed successfully");
+                fetchFollowedUsersPosts();
+                setFollowedUsers([...followedUsers, userId]);
+            })
+            .catch((error) => {
+                console.log("Error following user:", error);
+            });
+    };
+
+    const unfollowUser = (userId) => {
+        const followedUsersRef = rtdbRef(db, `users/${user.uid}/following/${userId}`);
+    
+        set(followedUsersRef, null)
+            .then(() => {
+                console.log("User unfollowed successfully");
+                fetchFollowedUsersPosts();
+                const updatedFollowedUsers = followedUsers.filter((id) => id !== userId);
+                setFollowedUsers(updatedFollowedUsers);
+            })
+            .catch((error) => {
+                console.log("Error unfollowing user:", error);
+            });
+    };
+    
+    
+    
+    const fetchFollowedUsersPosts = () => {
+        if (user) {
+        const followedUsersRef = rtdbRef(db, `users/${user.uid}/following`);
+    
+        onValue(followedUsersRef, (snapshot) => {
+            const followedUsers = snapshot.val();
+    
+            if (followedUsers) {
+            const fetchPromises = Object.keys(followedUsers).map((followedUserId) => {
+                const postsRef = rtdbRef(db, `users/${followedUserId}/posts`);
+    
+                return new Promise((resolve, reject) => {
+                    onValue(postsRef, (snapshot) => {
+                        const data = snapshot.val();
+                        if (data) {
+                        const posts = Object.keys(data).map((key) => ({
+                            id: key,
+                            title: data[key].title,
+                            image: data[key].image,
+                            username: data[key].username,
+                        }));
+                        resolve(posts);
+                        } else {
+                            resolve([]);
+                        }
+                    }, (err) => {
+                        reject(err);
+                    });
+                });
+            });
+    
+            Promise.all(fetchPromises)
+                .then((results) => {
+                    const followedUsersPosts = results.reduce((acc, posts) => [...acc, ...posts], []);
+                    setFollowedUsersPosts(followedUsersPosts);
+                })
+                .catch((error) => {
+                        console.log("Error fetching followed users' posts:", error);
+                });
+            } else {
+            setFollowedUsersPosts([]);
+            }
+        }, (err) => {
+            console.log("Error fetching followed users:", err);
+        });
+        }
+    };
+
     // once the component is rendered it automatically runs
 
     return (
 
         //the below tag will provide the data that will be present in this component to the child components
         // <ContextProvider.Provider value={{model,openModel,closeModel,register,login,user,loader,logout,create,posts,publishComment}}>
-        <ContextProvider.Provider value={{register,login,user,loader,logout,create,posts,publishComment,error,timer,setTimer,visible,setVisible,isRegistered}}>
+        <ContextProvider.Provider value={{initialized,register,login,loggedInUserId,user,loader,logout,create,posts,publishComment,error,timer,setTimer,visible,setVisible,isRegistered,followedUsersPosts,followUser, followedUsers, unfollowUser}}>
             {props.children}
         </ContextProvider.Provider>
     )

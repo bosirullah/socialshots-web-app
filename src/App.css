@@ -36,6 +36,13 @@ body{
   background: #fafafa;
 }
 
+.pre-loader{
+  width: 50px;
+  background: var(--black);
+  height: 50px;
+  border-radius: 100%;
+}
+
 .navbar{
   position: fixed;
   top: 0;
@@ -303,7 +310,101 @@ body{
   display: flex;
   align-items: center;
   background: var(--white);
+  padding: 0 10px;
+  justify-content: space-between;
+}
+
+.posts__header-left{
+  display: flex;
+  align-items: center;
+  background: var(--white);
   padding: 10px;
+}
+
+.posts__header {
+  position: relative;
+}
+
+.menu-icon {
+  cursor: pointer;
+}
+
+.menu-icon.active .line-1 {
+  transform: rotate(-45deg) translate(-4px, 3px);
+}
+
+.menu-icon.active .line-2 {
+  opacity: 0;
+}
+
+.menu-icon.active .line-3 {
+  transform: rotate(45deg) translate(-4px, -3px);
+}
+
+.delete-dropdown {
+  position: absolute;
+  top: 50px;
+  right: 32px;
+  width: 70px;
+  background-color: #efefef;
+  z-index: 1;
+  border-radius: 4px;
+}
+
+.delete-option {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  cursor: pointer;
+  text-align: center;
+  border-radius: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+}
+
+.delete-option:hover {
+  background-color: #f8f8f8;
+}
+
+
+.hamburger-react {
+  cursor: pointer;
+  height: 48px;
+  position: relative;
+  transition: all 0.4s cubic-bezier(0, 0, 0, 1) 0s;
+  user-select: none;
+  width: 48px;
+  outline: none;
+  transform: none;
+}
+
+.line-1, .line-2, .line-3{
+  background: currentcolor;
+  height: 3px;
+  left: 8px;
+  position: absolute;
+  width: 3px;
+  transition: all 0.4s cubic-bezier(0, 0, 0, 1) 0s;
+  transform: none;
+  left: 35px;
+}
+
+.line-1{
+  top: 13px;
+}
+
+.line-2{
+  top: 20px;
+}
+
+.line-3{
+  top: 27px;
+}
+
+.delete-option{
+  width: 80px;
+  height: 30px;
+  background: #efefef;
 }
 
 .posts__header-avatar{
@@ -445,7 +546,8 @@ body{
 
 .sidebar__list-b a{
   text-decoration: none;
-  color: #098bbe
+  color: #098bbe;
+  cursor: pointer;
 }
 
 .container{
