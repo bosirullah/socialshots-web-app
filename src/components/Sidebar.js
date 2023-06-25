@@ -26,8 +26,8 @@ const Sidebar = () => {
                     Object.entries(data).forEach(([uid, userData]) => {
 
                         // Exclude the logged-in user from the sidebar
-                        if (uid !== user.uid) {
-                            Object.entries(userData.profile).forEach(([postId, username]) => {                                
+                        if (uid !== user.uid) {                            
+                            Object.entries(userData.profile).forEach(([postId, username]) => {  
                                 // Add the username and image to the usernames array
                                 usernames.push({
                                     id: uid,
