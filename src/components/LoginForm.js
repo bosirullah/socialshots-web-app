@@ -1,8 +1,6 @@
 import React from 'react';
 // import { FaRectangleXmark } from "react-icons/fa6";
 import { FaRegWindowClose  } from "react-icons/fa";
-import { CSSTransition } from 'react-transition-group';
-
 import { useNavigate } from 'react-router-dom';
 import { ContextProvider } from '../Global/Context';
 
@@ -62,7 +60,7 @@ const LoginForm = () => {
         return () => {
             clearTimeout(timer);
         };
-    }, [error]);
+    });
 
     if (!initialized || loader) {
         // Show a loading indicator or return null while the initialization or data loading is in progress

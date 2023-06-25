@@ -104,7 +104,7 @@ const Context = (props) => {
         const { email, password } = user;
         try {
             await setPersistence(auth, browserSessionPersistence);
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            await signInWithEmailAndPassword(auth, email, password);
             const user = auth.currentUser;
 
             setLoggedInUserId(user.uid);
@@ -150,7 +150,6 @@ const Context = (props) => {
             getDownloadURL(snapshot.ref).then((downloadURL) => {
                 const postsRef = rtdbRef(db, `users/${user.uid}/posts`);
                 const newImageRef = push(postsRef);
-                const newImageKey = newImageRef.key;
         
                 const newImageData = {
                     title,

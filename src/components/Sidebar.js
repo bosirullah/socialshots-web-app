@@ -1,11 +1,11 @@
 import React from 'react';
 import { ContextProvider } from '../Global/Context';
-import { ref as rtdbRef,onValue,set,get } from "firebase/database";
-import { db, auth} from '../config';
+import { ref as rtdbRef,get } from "firebase/database";
+import { db } from '../config';
 
 
 const Sidebar = () => {
-    const {loader, user, followedUsersPosts, followUser, followedUsers, unfollowUser, loggedInUserId } = React.useContext(ContextProvider);
+    const {loader, user, followUser, followedUsers, unfollowUser, loggedInUserId } = React.useContext(ContextProvider);
     const [usernames, setUsernames] = React.useState([]);
     
     React.useEffect(() => {
@@ -47,7 +47,7 @@ const Sidebar = () => {
             if (!loader && followedUsers.length === 0) {
                 fetchUsernames();
             }
-        }, [loader,followedUsers, loggedInUserId]);
+        }, [loader,followedUsers, loggedInUserId,user.uid]);
     
     const handleFollow = (userId) => {
         if (followedUsers.includes(userId)) {

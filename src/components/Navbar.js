@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate hook
 import {ContextProvider} from '../Global/Context';
 
 const Navbar = () => {
-    const {model,openModel,user,loader,logout} = React.useContext(ContextProvider);
+    const {model,user,loader,logout} = React.useContext(ContextProvider);
     const navigate = useNavigate(); // Initialize useHistory hook
     console.log("my model : ",model);
     

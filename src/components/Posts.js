@@ -1,16 +1,13 @@
 import React, { useContext } from 'react';
 import { ContextProvider } from '../Global/Context';
 import Comment from './Comments';
-import { ref, remove, onValue } from "firebase/database";
-import Hamburger from 'hamburger-react';
-import {db,auth,storage} from "../config";
-import {setPersistence, browserSessionPersistence } from 'firebase/auth';
+import { ref, remove } from "firebase/database";
+import {db} from "../config";
 
 
 const Posts = () => {
     // We can access the post value using the ContextProvider
-    const {user, posts, followedUsersPosts,setPosts, loggedInUserId } = useContext(ContextProvider);
-    const [isOpen, setOpen] = React.useState(false);
+    const {user, posts, followedUsersPosts} = useContext(ContextProvider);
     
     const [isDropdownVisible, setDropdownVisible] = React.useState(false);
     

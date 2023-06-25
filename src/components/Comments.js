@@ -1,7 +1,7 @@
 import React from 'react';
 import { ContextProvider } from '../Global/Context';
 import { db } from '../config';
-import { ref as rtdbRef,set,serverTimestamp,onValue } from "firebase/database";
+import { ref as rtdbRef,onValue } from "firebase/database";
 
 
 const Comments = (props) => {
@@ -41,7 +41,7 @@ const Comments = (props) => {
             };
 
             fetchComments();
-    }, [user,loader])
+    })
 
     return (
         <div className="comments" >
