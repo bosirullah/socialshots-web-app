@@ -5,12 +5,13 @@ import Stories from './components/Stories';
 import Create from './components/Create';
 import Posts from './components/Posts';
 import Sidebar from './components/Sidebar';
-import Context from "./Global/Context";
-import { BrowserRouter } from 'react-router-dom';
+import Context, { ContextProvider } from "./Global/Context";
+import { BrowserRouter, Navigate } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
 
   React.useEffect(() => {
     // Check if the user is logged in when the app loads
