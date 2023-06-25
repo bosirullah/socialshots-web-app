@@ -47,7 +47,7 @@ const Sidebar = () => {
             if (!loader && followedUsers.length === 0) {
                 fetchUsernames();
             }
-        }, [loader,followedUsers, loggedInUserId,user.uid]);
+        }, [loader,followedUsers, loggedInUserId]);
     
     const handleFollow = (userId) => {
         if (followedUsers.includes(userId)) {
@@ -57,9 +57,13 @@ const Sidebar = () => {
         }
     };
     
-    
 
     const username = !loader && user && user.displayName ? user.displayName : '';
+
+    if(!user){
+        return <div></div>;
+    }
+    
 
     return (
         <div className="sidebar">
