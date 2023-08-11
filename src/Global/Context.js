@@ -1,5 +1,5 @@
 import React,{createContext} from 'react';
-import { createUserWithEmailAndPassword,signInWithEmailAndPassword,updateProfile,setPersistence, browserSessionPersistence } from 'firebase/auth';
+import { createUserWithEmailAndPassword,signInWithEmailAndPassword,updateProfile,setPersistence, browserSessionPersistence} from 'firebase/auth';
 import { db,auth,storage } from '../config';
 import {ref,uploadBytes,getDownloadURL  } from 'firebase/storage';
 import { ref as rtdbRef,set,push,serverTimestamp,onValue } from "firebase/database";
@@ -12,15 +12,17 @@ const Context = (props) => {
     const [posts,setPosts] = React.useState([]);
     const [followedUsersPosts, setFollowedUsersPosts] = React.useState([]);
     const [followedUsers, setFollowedUsers] = React.useState([]);
-
+    const [showPopup, setShowPopup] = React.useState(false);
+    const [closingBrowser, setClosingBrowser] = React.useState(false);
 
     const [error,setError] = React.useState('');
     const [timer,setTimer] = React.useState(null);
     const [visible, setVisible] = React.useState(true);
     const [loggedInUserId, setLoggedInUserId] = React.useState(null);
+    const [photoURL,setPhotoURL] = React.useState("/images/avatar.svg")
+
 
     const [isRegistered,setIsRegistered] = React.useState(null);
-    // const [registrationStatus, setRegistrationStatus] = React.useState(null);
 
     const { onLoginFailure,onLoginSuccess, onLogout } = props;
 
@@ -28,21 +30,46 @@ const Context = (props) => {
 
     React.useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((authUser) => {
-        if (authUser) {
-            // User is logged in
-            setUser(authUser);
-            setFollowedUsers([]);
+            setUser(user);
+            setLoader(false);
+            if (authUser) {
+                // User is logged in
+                setLoggedInUserId(authUser.uid);
+                setUser(authUser);
+                setFollowedUsers([]);
 
-            // Set initialized to true once user authentication is complete
-            setInitialized(true);
-        } else {
-            // User is logged out
-            setUser(null);
-            setFollowedUsers([]);
+                // Set initialized to true once user authentication is complete
+                setInitialized(true);
 
-            // Set initialized to true once user authentication is complete
-            setInitialized(true);
-        }
+                // Add the beforeunload event listener to log the user out when the browser is closed
+                const handleBeforeUnload = () => {
+                    setClosingBrowser(true);
+
+                    auth.signOut().then(() => {
+                        console.log("User logged out due to browser closure.");
+                    }).catch((error) => {
+                        console.log("Error logging out:", error);
+                    });
+                };
+
+                window.addEventListener('beforeunload', handleBeforeUnload);
+
+                 // Remove the event listener when the component unmounts
+                return () => {
+                    window.removeEventListener('beforeunload', handleBeforeUnload);
+                };
+
+            } 
+            else {
+                // User is logged out
+                setUser(null);
+                setFollowedUsers([]);
+                onLogout();
+                setError('')
+
+                // Set initialized to true once user authentication is complete
+                setInitialized(true);
+            }
         });
 
         // Clean up the listener
@@ -63,7 +90,7 @@ const Context = (props) => {
                     const profileRef = rtdbRef(db,`users/${user.uid}/profile`);
 
                     const profileData = {
-                        username,
+                        username    
                     }
 
                     set(profileRef,profileData)
@@ -363,13 +390,22 @@ const Context = (props) => {
         }
     };
 
+    async function uploadProfilePic(image){
+        const userStorageRef = ref(storage, `users/profilePic/${user.uid}}`);
+        const snapshot = await uploadBytes(userStorageRef,image);
+        const photoURL = await getDownloadURL(userStorageRef); 
+
+        updateProfile(user,{photoURL});
+        window.alert('Image successfully uploaded!');
+    };
+    
     // once the component is rendered it automatically runs
 
     return (
 
         //the below tag will provide the data that will be present in this component to the child components
         // <ContextProvider.Provider value={{model,openModel,closeModel,register,login,user,loader,logout,create,posts,publishComment}}>
-        <ContextProvider.Provider value={{initialized,register,login,loggedInUserId,user,loader,logout,create,posts,publishComment,error,timer,setTimer,visible,setVisible,isRegistered,followedUsersPosts,followUser, followedUsers, unfollowUser}}>
+        <ContextProvider.Provider value={{initialized,register,login,loggedInUserId,user,loader,logout,create,posts,publishComment,error,timer,setTimer,visible,setVisible,isRegistered,followedUsersPosts,followUser, followedUsers, unfollowUser, showPopup, setShowPopup, uploadProfilePic,photoURL,setPhotoURL}}>
             {props.children}
         </ContextProvider.Provider>
     )

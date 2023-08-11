@@ -2,11 +2,13 @@ import React from 'react';
 import { ContextProvider } from '../Global/Context';
 import { ref as rtdbRef,onValue,set,get } from "firebase/database";
 import { db, auth} from '../config';
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUserPen } from '@fortawesome/free-solid-svg-icons';
 
 const Sidebar = () => {
-    const {loader, user, followedUsersPosts, followUser, followedUsers, unfollowUser, loggedInUserId } = React.useContext(ContextProvider);
+    const {loader, user, followUser, followedUsers, unfollowUser, loggedInUserId,showPopup,setShowPopup,photoURL} = React.useContext(ContextProvider);
     const [usernames, setUsernames] = React.useState([]);
+    // const [showPopup, setShowPopup] = React.useState(false);
     
     React.useEffect(() => {
         const fetchUsernames = async () => {
@@ -32,6 +34,7 @@ const Sidebar = () => {
                                 usernames.push({
                                     id: uid,
                                     username,
+                                    photoURL
                                 });
                             });
                         }
@@ -62,7 +65,16 @@ const Sidebar = () => {
 
     if(!user){
         return <div></div>;
-    }
+    } 
+
+    const handleButtonClick = () => {
+        setShowPopup(true);
+        console.log("popup = ")
+    };
+
+    const handleClosePopup = () => {
+        setShowPopup(false);
+    };
     
 
     return (
@@ -70,8 +82,12 @@ const Sidebar = () => {
             {
                 !loader && user ? (
                     <div className="sidebar__user">
-                        <div className="sidebar__user-avatar">{username[0]}</div>
+                        <img src={photoURL} className="sidebar__avatar_pic" alt = {user.displayName[0]} />
+                        {/* <div className="sidebar__user-avatar">{photoURL}</div> */}
                         <div className="sidebar__user-name">{username}</div>
+                        <div onClick={handleButtonClick} className="edit__btn">
+                            <FontAwesomeIcon icon={faUserPen}></FontAwesomeIcon>
+                        </div>
                     </div>
                 ): (
                 ''
@@ -82,10 +98,18 @@ const Sidebar = () => {
                 <h3>Suggestion for you</h3>
                 {usernames.map((user) => (
                     <div className="sidebar__list-user" key={user.id}>
-                        {/* {console.log({user})} */}
+                        {console.log("u = ",{user})}
                         <div className="sidebar__list-a">
                             <div className="sidebar__list-a-img">
-                                <img src={user.image} alt={user.image} />
+                                    {console.log("photo = ",user.photoURL)}
+                                {   
+                                    user.photoURL? (
+                                        <img src={user.photoURL} className="sidebar__avatar_pic" alt = {user.username[0]} />
+
+                                    ):(
+                                        <div className="avatar-img">{user.username[0]}</div>
+                                    )
+                                }
                             </div>
                             <div className="sidebar__list-a-name">{user.username}</div>
                         </div>
@@ -99,8 +123,12 @@ const Sidebar = () => {
                     </div>
                 ))}
             </div>
+
+
         </div>
+
+        
     )
 }
 
-export default Sidebar
+export default Sidebar;

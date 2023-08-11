@@ -8,10 +8,10 @@ import Sidebar from './components/Sidebar';
 import Context, { ContextProvider } from "./Global/Context";
 import { BrowserRouter, Navigate } from 'react-router-dom';
 import LoginForm from './components/LoginForm';
+import ProfilePicChanger from './components/ProfilePicChanger';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isRegistered, setIsRegistered] = useState(false);
 
   React.useEffect(() => {
     // Check if the user is logged in when the app loads
@@ -57,10 +57,11 @@ function App() {
             <LoginForm />
         ) : (
           <>
-              <Navbar  />
+              <Navbar />
               <div className="container" style={{ marginLeft: "0" }}>
                 <Stories />
                 <Create />
+                <ProfilePicChanger/>
                 <Posts />
                 <Sidebar />
               </div>
