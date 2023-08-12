@@ -53,7 +53,7 @@ function App() {
   return (
     <BrowserRouter>
       <Context onLoginFailure={handleLoginFailure} onLoginSuccess={handleLoginSuccess}  onLogout={handleLogout} >
-        {!isLoggedIn ? (
+        {isLoggedIn ? (
             <LoginForm />
         ) : (
           <>
